@@ -1,0 +1,40 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Session {
+  id          String    @id
+  shop        String
+  state       String
+  isOnline    Boolean   @default(false)
+  scope       String?
+  expires     DateTime?
+  accessToken String
+  userId      BigInt?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Recipe {
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  imageUrl     String?
+  cookTime     Int?     // in minutes
+  servings     Int?
+  ingredients  String   // JSON string array
+  instructions String   // JSON string array
+  tags         String?  // JSON string array
+  productId    String?  // Shopify product ID
+  shop         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([shop])
+  @@index([productId])
+}

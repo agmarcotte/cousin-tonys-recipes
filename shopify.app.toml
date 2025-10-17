@@ -1,0 +1,21 @@
+# Shopify app configuration. https://shopify.dev/docs/apps/tools/cli/configuration
+name = "cousin-tonys-recipes"
+client_id = ""
+application_url = "https://localhost:3000"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = ""
+
+[access_scopes]
+scopes = "write_products,read_products,write_metaobjects,read_metaobjects"
+
+[auth]
+redirect_urls = ["https://localhost:3000/auth/callback"]
+
+[webhooks]
+api_version = "2024-01"
+
+[pos]
+embedded = false
