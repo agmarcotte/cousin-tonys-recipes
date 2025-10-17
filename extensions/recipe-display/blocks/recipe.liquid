@@ -1,0 +1,285 @@
+{% comment %}
+  Recipe Display Block
+  Displays a recipe with ingredients, instructions, and SEO data
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "Recipe",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "recipe_id",
+      "label": "Recipe ID",
+      "info": "Enter the recipe ID from your recipe manager"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Recipe Title",
+      "default": "Recipe Title"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Recipe Image"
+    },
+    {
+      "type": "number",
+      "id": "cook_time",
+      "label": "Cook Time (minutes)"
+    },
+    {
+      "type": "number",
+      "id": "servings",
+      "label": "Servings"
+    },
+    {
+      "type": "textarea",
+      "id": "ingredients",
+      "label": "Ingredients (one per line)"
+    },
+    {
+      "type": "textarea",
+      "id": "instructions",
+      "label": "Instructions (one per line)"
+    },
+    {
+      "type": "text",
+      "id": "tags",
+      "label": "Tags (comma-separated)"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="recipe-container" itemscope itemtype="https://schema.org/Recipe">
+  {% if section.settings.title != blank %}
+    <h2 class="recipe-title" itemprop="name">{{ section.settings.title }}</h2>
+  {% endif %}
+
+  {% if section.settings.image %}
+    <div class="recipe-image">
+      <img src="{{ section.settings.image | img_url: 'master' }}" 
+           alt="{{ section.settings.title }}" 
+           itemprop="image">
+    </div>
+  {% endif %}
+
+  {% if section.settings.description != blank %}
+    <div class="recipe-description" itemprop="description">
+      {{ section.settings.description }}
+    </div>
+  {% endif %}
+
+  <div class="recipe-meta">
+    {% if section.settings.cook_time %}
+      <span class="recipe-cook-time">
+        <strong>Cook Time:</strong> 
+        <span itemprop="cookTime" content="PT{{ section.settings.cook_time }}M">
+          {{ section.settings.cook_time }} minutes
+        </span>
+      </span>
+    {% endif %}
+
+    {% if section.settings.servings %}
+      <span class="recipe-servings">
+        <strong>Servings:</strong> 
+        <span itemprop="recipeYield">{{ section.settings.servings }}</span>
+      </span>
+    {% endif %}
+  </div>
+
+  {% if section.settings.ingredients != blank %}
+    <div class="recipe-ingredients">
+      <h3>Ingredients</h3>
+      <ul>
+        {% assign ingredients = section.settings.ingredients | split: newline %}
+        {% for ingredient in ingredients %}
+          {% if ingredient != blank %}
+            <li itemprop="recipeIngredient">{{ ingredient }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if section.settings.instructions != blank %}
+    <div class="recipe-instructions">
+      <h3>Instructions</h3>
+      <ol itemprop="recipeInstructions">
+        {% assign instructions = section.settings.instructions | split: newline %}
+        {% for instruction in instructions %}
+          {% if instruction != blank %}
+            <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
+              <span itemprop="text">{{ instruction }}</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ol>
+    </div>
+  {% endif %}
+
+  {% if section.settings.tags != blank %}
+    <div class="recipe-tags">
+      <meta itemprop="keywords" content="{{ section.settings.tags }}">
+      {% assign tags = section.settings.tags | split: ',' %}
+      {% for tag in tags %}
+        <span class="recipe-tag">{{ tag | strip }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="recipe-actions">
+    <button onclick="window.print()" class="recipe-print-button">Print Recipe</button>
+  </div>
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Recipe",
+    "name": {{ section.settings.title | json }},
+    {% if section.settings.description != blank %}
+    "description": {{ section.settings.description | json }},
+    {% endif %}
+    {% if section.settings.image %}
+    "image": "{{ section.settings.image | img_url: 'master' }}",
+    {% endif %}
+    {% if section.settings.cook_time %}
+    "cookTime": "PT{{ section.settings.cook_time }}M",
+    {% endif %}
+    {% if section.settings.servings %}
+    "recipeYield": "{{ section.settings.servings }}",
+    {% endif %}
+    {% if section.settings.ingredients != blank %}
+    "recipeIngredient": [
+      {% assign ingredients = section.settings.ingredients | split: newline %}
+      {% for ingredient in ingredients %}
+        {% if ingredient != blank %}
+          {{ ingredient | json }}{% unless forloop.last %},{% endunless %}
+        {% endif %}
+      {% endfor %}
+    ],
+    {% endif %}
+    {% if section.settings.instructions != blank %}
+    "recipeInstructions": [
+      {% assign instructions = section.settings.instructions | split: newline %}
+      {% for instruction in instructions %}
+        {% if instruction != blank %}
+          {
+            "@type": "HowToStep",
+            "position": {{ forloop.index }},
+            "text": {{ instruction | json }}
+          }{% unless forloop.last %},{% endunless %}
+        {% endif %}
+      {% endfor %}
+    ],
+    {% endif %}
+    {% if section.settings.tags != blank %}
+    "keywords": {{ section.settings.tags | json }}
+    {% endif %}
+  }
+  </script>
+</div>
+
+<style>
+  .recipe-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .recipe-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .recipe-image {
+    margin: 2rem 0;
+  }
+
+  .recipe-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  .recipe-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    color: #555;
+  }
+
+  .recipe-meta {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+  }
+
+  .recipe-ingredients,
+  .recipe-instructions {
+    margin-bottom: 2rem;
+  }
+
+  .recipe-ingredients h3,
+  .recipe-instructions h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .recipe-ingredients ul,
+  .recipe-instructions ol {
+    padding-left: 2rem;
+    line-height: 1.8;
+  }
+
+  .recipe-tags {
+    margin-bottom: 2rem;
+  }
+
+  .recipe-tag {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    background: #e0e0e0;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+
+  .recipe-actions {
+    margin-top: 2rem;
+  }
+
+  .recipe-print-button {
+    padding: 0.75rem 2rem;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .recipe-print-button:hover {
+    background: #555;
+  }
+
+  @media print {
+    .recipe-actions {
+      display: none;
+    }
+  }
+</style>
